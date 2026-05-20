@@ -44,6 +44,7 @@ public class CourseService {
                 .title(requestDto.getTitle())
                 .code(requestDto.getCode())
                 .credits(requestDto.getCredits())
+                .prerequisiteId(requestDto.getPrerequisiteId())
                 .build();
 
         Course savedCourse = courseRepository.save(course);
@@ -78,12 +79,24 @@ public class CourseService {
         courseRepository.delete(course);
     }
 
+
+
     public EnrollmentResponseDto enrollStudent(Long courseId, Long studentId) {
         log.debug("Enrolling student {} into course {}", studentId, courseId);
-        findCourseOrThrow(courseId);
+        Course course = findCourseOrThrow(courseId);
 
         if (enrollmentRepository.existsByCourseIdAndStudentId(courseId, studentId)) {
             throw new EnrollmentAlreadyExistsException(courseId, studentId);
+        }
+
+        if (course.getPrerequisiteId() != null) {
+            boolean hasPrerequisite = enrollmentRepository
+                    .existsByCourseIdAndStudentId(course.getPrerequisiteId(), studentId);
+            if (!hasPrerequisite) {
+                throw new RuntimeException(
+                        "Student has not completed the prerequisite course with id: "
+                                + course.getPrerequisiteId());
+            }
         }
 
         validateStudentWithFeign(studentId);
@@ -153,7 +166,8 @@ public class CourseService {
                 course.getId(),
                 course.getTitle(),
                 course.getCode(),
-                course.getCredits()
+                course.getCredits(),
+                course.getPrerequisiteId()
         );
     }
 }
