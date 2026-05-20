@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,7 +22,8 @@ public class EnrollmentResponseDto {
 
     @Schema(description = "Student id", example = "15")
     private Long studentId;
-
+private LocalDate enrollmentDate;
     @Schema(description = "Operation result message", example = "Student enrolled successfully.")
     private String message;
+
 }
