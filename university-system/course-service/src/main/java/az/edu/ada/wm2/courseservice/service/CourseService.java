@@ -133,6 +133,19 @@ public class CourseService {
         return new CourseStudentsResponseDto(course.getId(), course.getTitle(), students);
     }
 
+    public List<CourseResponseDto> getCoursesByStudentName(String name) {
+        log.debug("Fetching courses for student name: {}", name);
+        List<StudentDto> students = studentFeignClient.searchStudentsByName(name);
+        if (students.isEmpty()) {
+            throw new RuntimeException("No students found with name: " + name);
+        }
+        return students.stream()
+                .flatMap(student -> enrollmentRepository.findByStudentId(student.getId()).stream())
+                .map(enrollment -> findCourseOrThrow(enrollment.getCourseId()))
+                .map(this::toCourseResponseDto)
+                .distinct()
+                .toList();
+    }
     private void validateStudentWithFeign(Long studentId) {
         try {
             log.debug("Validating student {} via Feign", studentId);

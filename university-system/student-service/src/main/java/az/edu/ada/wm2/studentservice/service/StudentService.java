@@ -56,6 +56,14 @@ public class StudentService {
         studentRepository.delete(student);
     }
 
+    public List<StudentResponseDto> getStudentsByName(String name) {
+        return studentRepository
+                .findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(name, name)
+                .stream()
+                .map(this::toResponseDto)
+                .toList();
+    }
+
     private Student findStudentOrThrow(Long id) {
         return studentRepository.findById(id)
                 .orElseThrow(() -> new StudentNotFoundException(id));
